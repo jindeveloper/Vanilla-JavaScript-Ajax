@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css" type="text/css" />
+</head>
+
+<body>
+    <div class="container">
+        <div>
+            <div class="row" id="articleParent">
+                <!-- articles will be added dynamically -->
+            </div>
+        </div>
+    </div>
+    <script>
+
+        const responseToXHR = (httpRequest) => {
+            if (httpRequest.readyState === 4) {
+                if (httpRequest.status === 200) {
+                    updateUI(httpRequest.responseText);
+                }
+                else {
+                    updateUI(httpRequest);
+                }
+            }
+        }
+
+        const innerHTMLContent = (article) => {
+            return `<article>
+                            <h5><a title="${article.title}" target="__blank" href="${article.url}">${article.title}</a></h5>
+                            <a href="${article.url}"><img class='img-thumbnail' src="${article.urlToImage}"/></a>
+                            <p>${article.content}</p>
+                        </article>`;
+        };
+
+        const innerHTMLErrorContent = (request) => {
+            return `<article>
+                            <h5>${JSON.parse(request.response).message}</h5>
+                            <p>
+                                Status Error Number: ${request.status}
+                                Status Error Message: ${request.statusText}
+                            </p>
+                        </article>`;
+        };
+
+        const updateUI = (response) => {
+
+            let div = document.getElementById("articleParent"),
+                result = response instanceof Object ? response : JSON.parse(response) ;
+
+            if (result.articles) {
+                result.articles.forEach((article) => {
+                    div.innerHTML += innerHTMLContent(article);
+                });
+            }
+            else{
+                div.innerHTML += innerHTMLErrorContent(response);
+            }
+
+        }
+
+        (() => {
+
+            const country = 'us', apiKey = 'cfb7ad9054cd410cb8cd2595a6f04bc8s';
+
+            let url = `https://newsapi.org/v2/top-headlines?country=${country}&apiKey=${apiKey}`;
+
+            let httpRequest = new XMLHttpRequest();
+
+            httpRequest.onreadystatechange = () => responseToXHR(httpRequest);
+
+            httpRequest.open('GET', url);
+            httpRequest.send();
+
+        })();
+    </script>
+</body>
+
+</html>
